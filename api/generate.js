@@ -39,7 +39,7 @@ export default async function handler(req, res) {
 `;
 
     const response = await fetch(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
       {
         method: 'POST',
         headers: {
@@ -58,7 +58,6 @@ export default async function handler(req, res) {
 
     const data = await response.json();
 
-    // 1. HTTP 에러 먼저 확인
     if (!response.ok) {
       return res.status(response.status).json({
         error: 'Gemini API request failed',
@@ -67,15 +66,6 @@ export default async function handler(req, res) {
       });
     }
 
-    // 2. candidates 존재 여부 확인
-    if (!data?.candidates || !Array.isArray(data.candidates) || data.candidates.length === 0) {
-      return res.status(500).json({
-        error: 'No candidates returned from Gemini',
-        raw: data
-      });
-    }
-
-    // 3. text 추출
     const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!rawText) {
@@ -85,20 +75,17 @@ export default async function handler(req, res) {
       });
     }
 
-    // 4. 코드블록 제거
     let cleaned = rawText
       .replace(/```json/gi, '')
       .replace(/```/g, '')
       .trim();
 
-    // 5. JSON 부분만 잘라내기
     const start = cleaned.indexOf('{');
     const end = cleaned.lastIndexOf('}');
     if (start !== -1 && end !== -1) {
       cleaned = cleaned.slice(start, end + 1);
     }
 
-    // 6. JSON 파싱
     let parsed;
     try {
       parsed = JSON.parse(cleaned);
@@ -112,7 +99,6 @@ export default async function handler(req, res) {
       });
     }
 
-    // 7. 최종 형식 검증
     if (!parsed.items || !Array.isArray(parsed.items)) {
       return res.status(500).json({
         error: 'Invalid JSON format',
@@ -122,7 +108,6 @@ export default async function handler(req, res) {
     }
 
     return res.status(200).json(parsed);
-
   } catch (error) {
     return res.status(500).json({
       error: 'server error',
