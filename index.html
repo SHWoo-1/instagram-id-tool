@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- SEO Requirements -->
+    <title>인스타 아이디 추천 | 감성 영어 닉네임 자동 생성기</title>
+    <meta name="description" content="AI 기반 인스타 아이디 추천기. 감성, 힙, 귀여운 스타일의 영어 닉네임을 자동 생성해보세요.">
+    
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Pretendard for clean Korean typography -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    
+    <style>
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: #f8fafc; /* Slate 50 */
+        }
+        
+        /* Custom scrollbar for result list */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 20px;
+        }
+        
+        /* Loading spinner animation */
+        .spinner {
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border-left-color: #6366f1; /* Indigo 500 */
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <!-- Main Card Container -->
+    <main class="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
+        
+        <!-- Header Section -->
+        <header class="bg-gradient-to-r from-indigo-500 to-purple-600 p-6 text-white text-center flex-shrink-0">
+            <h1 class="text-2xl font-bold mb-1">인스타 아이디 추천기</h1>
+            <p class="text-indigo-100 text-sm">(AI 기반)</p>
+        </header>
+
+        <!-- Input Section -->
+        <div class="p-6 flex-shrink-0 border-b border-gray-100">
+            <form id="generateForm" class="space-y-4">
+                <!-- Keyword Input -->
+                <div>
+                    <label for="keyword" class="block text-sm font-medium text-gray-700 mb-1">키워드</label>
+                    <input type="text" id="keyword" required
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                        placeholder="예: 여행, 감성, 고양이">
+                </div>
+                
+                <!-- Style Select -->
+                <div>
+                    <label for="style" class="block text-sm font-medium text-gray-700 mb-1">스타일</label>
+                    <select id="style" 
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-white">
+                        <option value="감성">✨ 감성적인</option>
+                        <option value="힙한">🔥 힙한</option>
+                        <option value="귀여운">🧸 귀여운</option>
+                        <option value="미니멀">◽ 미니멀한</option>
+                    </select>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" id="submitBtn"
+                    class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 flex justify-center items-center gap-2">
+                    <span>아이디 추천받기</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Status & Results Section -->
+        <div class="p-6 overflow-y-auto custom-scrollbar flex-grow bg-gray-50" id="resultContainer" style="display: none;">
+            
+            <!-- Loading State -->
+            <div id="loadingState" class="hidden flex flex-col items-center justify-center py-8 text-gray-500">
+                <div class="spinner mb-3"></div>
+                <p class="text-sm font-medium">생성 중입니다...</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="errorState" class="hidden bg-red-50 text-red-600 p-4 rounded-lg text-sm text-center border border-red-100 mb-4">
+                오류가 발생했습니다. 다시 시도해주세요.
+            </div>
+
+            <!-- Notice for Mock Data (Visible only in preview environment) -->
+            <div id="mockNotice" class="hidden bg-amber-50 text-amber-600 p-3 rounded-lg text-xs text-center border border-amber-200 mb-4">
+                API 서버 연결 실패로 임시 데이터를 보여줍니다.
+            </div>
+
+            <!-- Results List -->
+            <ul id="resultsList" class="space-y-3">
+                <!-- List items will be injected here by JS -->
+            </ul>
+        </div>
+    </main>
+
+    <script>
+        // DOM Elements
+        const form = document.getElementById('generateForm');
+        const keywordInput = document.getElementById('keyword');
+        const styleSelect = document.getElementById('style');
+        const submitBtn = document.getElementById('submitBtn');
+        const resultContainer = document.getElementById('resultContainer');
+        const loadingState = document.getElementById('loadingState');
+        const errorState = document.getElementById('errorState');
+        const mockNotice = document.getElementById('mockNotice');
+        const resultsList = document.getElementById('resultsList');
+
+        // Form Submit Event Listener
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const keyword = keywordInput.value.trim();
+            const style = styleSelect.value;
+            
+            if (!keyword) return;
+
+            // UI State: Loading
+            resultContainer.style.display = 'block';
+            loadingState.classList.remove('hidden');
+            errorState.classList.add('hidden');
+            mockNotice.classList.add('hidden');
+            resultsList.innerHTML = '';
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-70', 'cursor-not-allowed');
+
+            try {
+                // Call the requested API endpoint
+                const data = await fetchRecommendations(keyword, style);
+                
+                // UI State: Success
+                renderResults(data.items);
+                
+            } catch (error) {
+                console.error("Error generating usernames:", error);
+                // UI State: Error
+                errorState.classList.remove('hidden');
+                errorState.innerText = error.message || "오류가 발생했습니다. 다시 시도해주세요.";
+            } finally {
+                // Restore button state
+                loadingState.classList.add('hidden');
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+            }
+        });
+
+        // Function to fetch data from API
+        async function fetchRecommendations(keyword, style) {
+            try {
+                // Attempt to call the actual endpoint as requested
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ keyword, style })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                return await response.json();
+                
+            } catch (error) {
+                // FALLBACK FOR PREVIEW ENVIRONMENT
+                // Since /api/generate doesn't exist here, we provide mock data 
+                // so the user can see the UI/UX working as requested ("바로 실행 가능").
+                console.warn("API call failed, falling back to mock data for demonstration.");
+                mockNotice.classList.remove('hidden');
+                return generateMockData(keyword, style);
+            }
+        }
+
+        // Function to render the list of items
+        function renderResults(items) {
+            resultsList.innerHTML = '';
+            
+            items.forEach((item, index) => {
+                const li = document.createElement('li');
+                li.className = "bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center hover:shadow-md transition-shadow duration-200";
+                
+                // Username and Reason section
+                const textDiv = document.createElement('div');
+                textDiv.className = "pr-4 overflow-hidden";
+                
+                const usernameSpan = document.createElement('span');
+                usernameSpan.className = "block font-bold text-gray-900 text-lg tracking-tight truncate";
+                usernameSpan.innerText = item.username;
+                
+                const reasonSpan = document.createElement('span');
+                reasonSpan.className = "block text-xs text-gray-500 mt-1 truncate";
+                reasonSpan.innerText = item.reason;
+                
+                textDiv.appendChild(usernameSpan);
+                textDiv.appendChild(reasonSpan);
+                
+                // Copy button section
+                const copyBtn = document.createElement('button');
+                copyBtn.className = "flex-shrink-0 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium py-1.5 px-3 rounded-md transition-colors duration-200";
+                copyBtn.innerText = "복사";
+                
+                // Copy Event
+                copyBtn.addEventListener('click', () => copyToClipboard(item.username, copyBtn));
+                
+                li.appendChild(textDiv);
+                li.appendChild(copyBtn);
+                resultsList.appendChild(li);
+                
+                // Staggered animation for items
+                li.style.opacity = '0';
+                li.style.transform = 'translateY(10px)';
+                setTimeout(() => {
+                    li.style.transition = 'all 0.3s ease-out';
+                    li.style.opacity = '1';
+                    li.style.transform = 'translateY(0)';
+                }, index * 50);
+            });
+        }
+
+        // Function to copy text to clipboard securely (using execCommand for iframe compatibility)
+        function copyToClipboard(text, buttonElement) {
+            // Create a temporary textarea element
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            
+            // Prevent scrolling to bottom
+            textArea.style.top = "0";
+            textArea.style.left = "0";
+            textArea.style.position = "fixed";
+            
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                // Execute copy command
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    // Visual feedback: Change to "복사됨!"
+                    const originalText = buttonElement.innerText;
+                    buttonElement.innerText = "복사됨!";
+                    buttonElement.classList.remove('bg-gray-100', 'hover:bg-gray-200', 'text-gray-700');
+                    buttonElement.classList.add('bg-indigo-100', 'text-indigo-700', 'hover:bg-indigo-200');
+                    
+                    // Revert back after 2 seconds
+                    setTimeout(() => {
+                        buttonElement.innerText = "복사";
+                        buttonElement.classList.remove('bg-indigo-100', 'text-indigo-700', 'hover:bg-indigo-200');
+                        buttonElement.classList.add('bg-gray-100', 'hover:bg-gray-200', 'text-gray-700');
+                    }, 2000);
+                }
+            } catch (err) {
+                console.error('Fallback: Oops, unable to copy', err);
+                alert('클립보드 복사에 실패했습니다.');
+            }
+            
+            document.body.removeChild(textArea);
+        }
+
+        // ---------------------------------------------------------
+        // Mock Data Generator (For Demonstration in Preview only)
+        // ---------------------------------------------------------
+        function generateMockData(keyword, style) {
+            return new Promise((resolve) => {
+                // Simulate network delay (1.5 seconds)
+                setTimeout(() => {
+                    // Translate korean style to a modifier
+                    const engKeyword = "kw"; // simplified for mock
+                    let prefixes = [];
+                    let suffixes = [];
+                    
+                    if (style === '감성') {
+                        prefixes = ['mood.', 'dear.', 'daily.', 'blanc.', 'of.'];
+                        suffixes = ['_mood', '.log', '_days', '.archive'];
+                    } else if (style === '힙한') {
+                        prefixes = ['x.', 'real.', 'zero.', 'y2k.', 'vibe.'];
+                        suffixes = ['_x', '.kr', 'boi', 'gurl', '_vibes'];
+                    } else if (style === '귀여운') {
+                        prefixes = ['mini.', 'tiny.', 'cozy.', 'sweet.', 'berry.'];
+                        suffixes = ['_sz', '.S2', '_bear', 'luv', '.pong'];
+                    } else { // 미니멀
+                        prefixes = ['m.', 'the.', 'a.', 'just.', 'pure.'];
+                        suffixes = ['.m', '_', '.io', '.x', '___'];
+                    }
+
+                    const items = [];
+                    for (let i = 0; i < 10; i++) {
+                        // Generate random variation
+                        const p = prefixes[Math.floor(Math.random() * prefixes.length)];
+                        const s = suffixes[Math.floor(Math.random() * suffixes.length)];
+                        
+                        // Fake a somewhat relevant english looking keyword from the korean input
+                        // For mock purposes, just use the korean keyword if it's english, or a placeholder
+                        const base = /^[a-zA-Z]+$/.test(keyword) ? keyword.toLowerCase() : `user${Math.floor(Math.random()*99)}`;
+                        
+                        let username = "";
+                        const randPattern = Math.random();
+                        if (randPattern < 0.3) username = `${p}${base}`;
+                        else if (randPattern < 0.6) username = `${base}${s}`;
+                        else username = `${p}${base}${s}`;
+
+                        items.push({
+                            username: username,
+                            reason: `입력하신 '${keyword}'의 ${style} 무드를 담아 조합했습니다.`
+                        });
+                    }
+                    resolve({ items });
+                }, 1500);
+            });
+        }
+    </script>
+</body>
+</html>
