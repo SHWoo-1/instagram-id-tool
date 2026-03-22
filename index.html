@@ -1,334 +1,264 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- SEO Requirements -->
-    <title>인스타 아이디 추천 | 감성 영어 닉네임 자동 생성기</title>
-    <meta name="description" content="AI 기반 인스타 아이디 추천기. 감성, 힙, 귀여운 스타일의 영어 닉네임을 자동 생성해보세요.">
-    
-    <!-- Tailwind CSS for styling -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Pretendard for clean Korean typography -->
-    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
-    
-    <style>
-        body {
-            font-family: 'Pretendard', sans-serif;
-            background-color: #f8fafc; /* Slate 50 */
-        }
-        
-        /* Custom scrollbar for result list */
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background-color: #cbd5e1;
-            border-radius: 20px;
-        }
-        
-        /* Loading spinner animation */
-        .spinner {
-            border: 3px solid rgba(0, 0, 0, 0.1);
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            border-left-color: #6366f1; /* Indigo 500 */
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>인스타 아이디 생성기 | ITmanual.net</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .animate-fade-in-up { animation: fadeInUp 0.6s ease-out forwards; }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    /* 숨김 처리용 유틸리티 클래스 */
+    .hidden-custom { display: none !important; }
+  </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4">
+<body class="min-h-screen bg-[#fafafa] flex flex-col items-center py-10 px-4 sm:px-6 lg:px-8 font-sans text-gray-900 selection:bg-pink-200">
 
-    <!-- Main Card Container -->
-    <main class="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
-        
-        <!-- Header Section -->
-        <header class="bg-gradient-to-r from-indigo-500 to-purple-600 p-6 text-white text-center flex-shrink-0">
-            <h1 class="text-2xl font-bold mb-1">인스타 아이디 추천기</h1>
-            <p class="text-indigo-100 text-sm">(AI 기반)</p>
-        </header>
+  <!-- Header -->
+  <div class="text-center max-w-2xl w-full mb-8">
+    <div class="inline-flex items-center justify-center p-3 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-2xl shadow-lg shadow-pink-200 mb-6 transform -rotate-3 hover:rotate-0 transition-transform">
+      <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+    </div>
+    <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900 mb-4">
+      Gen<span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600">ID</span>
+    </h1>
+    <p class="text-lg text-gray-600 max-w-lg mx-auto leading-relaxed">
+      AI가 분석하는 나의 바이브 🔮<br/>세상에 하나뿐인 유니크한 인스타 아이디를 만들어보세요.
+    </p>
+  </div>
 
-        <!-- Input Section -->
-        <div class="p-6 flex-shrink-0 border-b border-gray-100">
-            <form id="generateForm" class="space-y-4">
-                <!-- Keyword Input -->
-                <div>
-                    <label for="keyword" class="block text-sm font-medium text-gray-700 mb-1">키워드</label>
-                    <input type="text" id="keyword" required
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
-                        placeholder="예: 여행, 감성, 고양이">
-                </div>
-                
-                <!-- Style Select -->
-                <div>
-                    <label for="style" class="block text-sm font-medium text-gray-700 mb-1">스타일</label>
-                    <select id="style" 
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-white">
-                        <option value="감성">✨ 감성적인</option>
-                        <option value="힙한">🔥 힙한</option>
-                        <option value="귀여운">🧸 귀여운</option>
-                        <option value="미니멀">◽ 미니멀한</option>
-                    </select>
-                </div>
-
-                <!-- Submit Button -->
-                <button type="submit" id="submitBtn"
-                    class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 flex justify-center items-center gap-2">
-                    <span>아이디 추천받기</span>
-                </button>
-            </form>
+  <div class="w-full max-w-2xl grid grid-cols-1 gap-8">
+    <!-- Main Form Card -->
+    <div class="bg-white rounded-[2rem] shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
+      <div class="p-6 sm:p-10">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-xl font-bold flex items-center gap-2">
+            ✨ 기본 정보 입력
+          </h2>
+          <button id="randomFillBtn" type="button" class="text-sm flex items-center gap-1.5 text-gray-500 hover:text-purple-600 transition-colors bg-gray-50 px-3 py-1.5 rounded-full">
+            🎲 알아서 채우기
+          </button>
         </div>
 
-        <!-- Status & Results Section -->
-        <div class="p-6 overflow-y-auto custom-scrollbar flex-grow bg-gray-50" id="resultContainer" style="display: none;">
-            
-            <!-- Loading State -->
-            <div id="loadingState" class="hidden flex flex-col items-center justify-center py-8 text-gray-500">
-                <div class="spinner mb-3"></div>
-                <p class="text-sm font-medium">생성 중입니다...</p>
+        <form id="generateForm" class="space-y-8">
+          
+          <!-- Name & Keyword -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">이름 / 닉네임 <span class="text-pink-500">*</span></label>
+              <input type="text" id="name" required placeholder="예: 지은, 제이" class="w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:ring-4 focus:ring-pink-50 focus:border-pink-500 transition-all bg-gray-50 focus:bg-white outline-none">
             </div>
-
-            <!-- Error State -->
-            <div id="errorState" class="hidden bg-red-50 text-red-600 p-4 rounded-lg text-sm text-center border border-red-100 mb-4">
-                오류가 발생했습니다. 다시 시도해주세요.
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">관심사 / 키워드</label>
+              <input type="text" id="keywords" placeholder="예: 카페, 필름카메라" class="w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:ring-4 focus:ring-pink-50 focus:border-pink-500 transition-all bg-gray-50 focus:bg-white outline-none">
             </div>
+          </div>
 
-            <!-- Notice for Mock Data (Visible only in preview environment) -->
-            <div id="mockNotice" class="hidden bg-amber-50 text-amber-600 p-3 rounded-lg text-xs text-center border border-amber-200 mb-4">
-                API 서버 연결 실패로 임시 데이터를 보여줍니다.
+          <!-- Category -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-3">계정의 목적이 무엇인가요?</label>
+            <select id="category" class="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white outline-none cursor-pointer">
+              <option value="daily">일상/본계정 📱</option>
+              <option value="fashion">패션/OOTD 👗</option>
+              <option value="food">맛집/카페 ☕</option>
+              <option value="travel">여행/풍경 ✈️</option>
+              <option value="tech">IT/개발자 💻</option>
+              <option value="art">디자인/창작 🎨</option>
+              <option value="pet">반려동물 🐾</option>
+              <option value="fanpage">덕질/팬계정 🎤</option>
+            </select>
+          </div>
+
+          <!-- Vibe -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-3">원하는 아이디의 분위기</label>
+            <select id="vibe" class="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white outline-none cursor-pointer">
+              <option value="aesthetic">감성적인 (Aesthetic) ✨</option>
+              <option value="y2k">Y2K / 레트로 🛼</option>
+              <option value="minimal">깔끔 / 미니멀 🤍</option>
+              <option value="baddie">힙하고 강렬한 (Baddie) 🖤</option>
+              <option value="cute">귀엽고 뽀짝한 🧸</option>
+              <option value="clever">재치있는/언어유희 🤪</option>
+              <option value="pro">전문적인/신뢰감 💼</option>
+            </select>
+          </div>
+
+          <!-- Advanced Settings -->
+          <div class="border-t border-gray-100 pt-6">
+            <h3 class="text-sm font-semibold text-gray-600 mb-4">디테일 설정 (특수기호 등)</h3>
+            <div class="bg-gray-50 rounded-xl p-4 space-y-3">
+              <label class="flex items-center justify-between cursor-pointer">
+                <span class="text-sm text-gray-700 font-medium">숫자 (0-9) 포함 허용</span>
+                <input type="checkbox" id="useNumbers" checked class="w-5 h-5 accent-pink-500">
+              </label>
+              <label class="flex items-center justify-between cursor-pointer">
+                <span class="text-sm text-gray-700 font-medium">밑줄 (_) 포함 허용</span>
+                <input type="checkbox" id="useUnderscores" checked class="w-5 h-5 accent-pink-500">
+              </label>
+              <label class="flex items-center justify-between cursor-pointer">
+                <span class="text-sm text-gray-700 font-medium">마침표 (.) 포함 허용</span>
+                <input type="checkbox" id="usePeriods" checked class="w-5 h-5 accent-pink-500">
+              </label>
             </div>
+          </div>
 
-            <!-- Results List -->
-            <ul id="resultsList" class="space-y-3">
-                <!-- List items will be injected here by JS -->
-            </ul>
-        </div>
-    </main>
+          <!-- Submit Button -->
+          <button type="submit" id="submitBtn" class="w-full relative overflow-hidden flex items-center justify-center py-4 px-8 rounded-2xl text-white font-bold text-lg transition-all duration-300 bg-gray-900 hover:bg-black hover:shadow-xl hover:shadow-pink-500/20 hover:-translate-y-1" style="min-height: 60px;">
+            <span id="btnText">✨ 나만의 아이디 생성하기</span>
+            <span id="loadingText" class="hidden-custom animate-pulse">AI가 분석중입니다...</span>
+          </button>
+        </form>
+      </div>
+    </div>
 
-    <script>
-        // DOM Elements
-        const form = document.getElementById('generateForm');
-        const keywordInput = document.getElementById('keyword');
-        const styleSelect = document.getElementById('style');
-        const submitBtn = document.getElementById('submitBtn');
-        const resultContainer = document.getElementById('resultContainer');
-        const loadingState = document.getElementById('loadingState');
-        const errorState = document.getElementById('errorState');
-        const mockNotice = document.getElementById('mockNotice');
-        const resultsList = document.getElementById('resultsList');
+    <!-- Error Section -->
+    <div id="errorBox" class="hidden-custom items-start p-4 bg-red-50 rounded-2xl text-red-700 border border-red-100">
+      <p id="errorMessage" class="text-sm font-medium">오류가 발생했습니다.</p>
+    </div>
 
-        // Form Submit Event Listener
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const keyword = keywordInput.value.trim();
-            const style = styleSelect.value;
-            
-            if (!keyword) return;
+    <!-- Results Section -->
+    <div id="resultsContainer" class="hidden-custom bg-white rounded-[2rem] shadow-xl shadow-gray-200/50 border border-gray-100 p-6 sm:p-10 animate-fade-in-up mt-8">
+      <div class="flex items-center justify-between mb-6">
+        <h3 class="text-2xl font-extrabold text-gray-900 flex items-center">
+          <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 mr-2">Pick Your</span>Username
+        </h3>
+      </div>
+      <div id="resultsList" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <!-- 결과가 여기에 동적으로 들어갑니다 -->
+      </div>
+    </div>
+  </div>
 
-            // UI State: Loading
-            resultContainer.style.display = 'block';
-            loadingState.classList.remove('hidden');
-            errorState.classList.add('hidden');
-            mockNotice.classList.add('hidden');
-            resultsList.innerHTML = '';
-            submitBtn.disabled = true;
-            submitBtn.classList.add('opacity-70', 'cursor-not-allowed');
+  <!-- Footer (Sean Woo 제작 명시) -->
+  <p class="mt-12 text-sm font-medium text-gray-400">
+    Designed & Developed by <a href="https://itmanual.net" target="_blank" class="text-pink-500 hover:text-pink-600 underline decoration-pink-200 underline-offset-4">Sean Woo of ITmanual.net</a>
+  </p>
 
-            try {
-                // Call the requested API endpoint
-                const data = await fetchRecommendations(keyword, style);
-                
-                // UI State: Success
-                renderResults(data.items);
-                
-            } catch (error) {
-                console.error("Error generating usernames:", error);
-                // UI State: Error
-                errorState.classList.remove('hidden');
-                errorState.innerText = error.message || "오류가 발생했습니다. 다시 시도해주세요.";
-            } finally {
-                // Restore button state
-                loadingState.classList.add('hidden');
-                submitBtn.disabled = false;
-                submitBtn.classList.remove('opacity-70', 'cursor-not-allowed');
-            }
+  <script>
+    // 알아서 채우기 기능
+    document.getElementById('randomFillBtn').addEventListener('click', () => {
+      const names = ['지은', '제이', '민수', 'Alex', 'Chloe'];
+      const keywords = ['필름카메라, 노을', '코딩, 커피', '빈티지, LP', '헬스, 다이어트', '고양이, 낮잠'];
+      
+      document.getElementById('name').value = names[Math.floor(Math.random() * names.length)];
+      document.getElementById('keywords').value = keywords[Math.floor(Math.random() * keywords.length)];
+      
+      const categories = ['daily', 'fashion', 'food', 'travel', 'tech', 'art', 'pet', 'fanpage'];
+      const vibes = ['aesthetic', 'y2k', 'minimal', 'baddie', 'cute', 'clever', 'pro'];
+      
+      document.getElementById('category').value = categories[Math.floor(Math.random() * categories.length)];
+      document.getElementById('vibe').value = vibes[Math.floor(Math.random() * vibes.length)];
+      
+      document.getElementById('useNumbers').checked = Math.random() > 0.5;
+      document.getElementById('useUnderscores').checked = Math.random() > 0.5;
+      document.getElementById('usePeriods').checked = Math.random() > 0.5;
+    });
+
+    // 폼 제출 기능 (백엔드 API 호출)
+    document.getElementById('generateForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const name = document.getElementById('name').value;
+      if (!name.trim()) return;
+
+      const submitBtn = document.getElementById('submitBtn');
+      const btnText = document.getElementById('btnText');
+      const loadingText = document.getElementById('loadingText');
+      const resultsContainer = document.getElementById('resultsContainer');
+      const errorBox = document.getElementById('errorBox');
+      const errorMessage = document.getElementById('errorMessage');
+      const resultsList = document.getElementById('resultsList');
+
+      // 로딩 상태 시작
+      submitBtn.classList.add('bg-gray-400', 'cursor-not-allowed');
+      submitBtn.classList.remove('bg-gray-900', 'hover:bg-black', 'hover:-translate-y-1');
+      btnText.classList.add('hidden-custom');
+      loadingText.classList.remove('hidden-custom');
+      errorBox.classList.add('hidden-custom');
+      resultsContainer.classList.add('hidden-custom');
+      submitBtn.disabled = true;
+
+      try {
+        // Vercel의 백엔드 API(/api/generate)로 데이터 전송 (API 키 없음!)
+        const response = await fetch('/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: name,
+            keywords: document.getElementById('keywords').value,
+            categoryLabel: document.getElementById('category').options[document.getElementById('category').selectedIndex].text,
+            vibeLabel: document.getElementById('vibe').options[document.getElementById('vibe').selectedIndex].text,
+            useNumbers: document.getElementById('useNumbers').checked,
+            useUnderscores: document.getElementById('useUnderscores').checked,
+            usePeriods: document.getElementById('usePeriods').checked
+          })
         });
 
-        // Function to fetch data from API
-        async function fetchRecommendations(keyword, style) {
-            try {
-                // Attempt to call the actual endpoint as requested
-                const response = await fetch('/api/generate', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ keyword, style })
-                });
+        if (!response.ok) throw new Error('API 서버 오류가 발생했습니다.');
 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+        const data = await response.json();
+        
+        if (data.error) throw new Error(data.error);
+        if (!data.ids || data.ids.length === 0) throw new Error('결과를 생성하지 못했습니다.');
 
-                return await response.json();
-                
-            } catch (error) {
-                // FALLBACK FOR PREVIEW ENVIRONMENT
-                // Since /api/generate doesn't exist here, we provide mock data 
-                // so the user can see the UI/UX working as requested ("바로 실행 가능").
-                console.warn("API call failed, falling back to mock data for demonstration.");
-                mockNotice.classList.remove('hidden');
-                return generateMockData(keyword, style);
-            }
-        }
+        // 결과 렌더링
+        resultsList.innerHTML = '';
+        data.ids.forEach(id => {
+          const div = document.createElement('div');
+          div.className = 'group relative flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-transparent hover:border-pink-200 hover:bg-pink-50/50 transition-all duration-200';
+          div.innerHTML = `
+            <div class="flex items-center overflow-hidden">
+              <span class="text-gray-400 mr-2 font-mono">@</span>
+              <span class="font-semibold text-gray-800 text-lg truncate">${id}</span>
+            </div>
+            <button onclick="copyToClipboard('${id}', this)" class="ml-2 px-3 py-1.5 rounded-lg text-sm bg-white text-gray-500 shadow-sm border border-gray-200 hover:text-pink-600 transition-all">복사</button>
+          `;
+          resultsList.appendChild(div);
+        });
+        
+        resultsContainer.classList.remove('hidden-custom');
 
-        // Function to render the list of items
-        function renderResults(items) {
-            resultsList.innerHTML = '';
-            
-            items.forEach((item, index) => {
-                const li = document.createElement('li');
-                li.className = "bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center hover:shadow-md transition-shadow duration-200";
-                
-                // Username and Reason section
-                const textDiv = document.createElement('div');
-                textDiv.className = "pr-4 overflow-hidden";
-                
-                const usernameSpan = document.createElement('span');
-                usernameSpan.className = "block font-bold text-gray-900 text-lg tracking-tight truncate";
-                usernameSpan.innerText = item.username;
-                
-                const reasonSpan = document.createElement('span');
-                reasonSpan.className = "block text-xs text-gray-500 mt-1 truncate";
-                reasonSpan.innerText = item.reason;
-                
-                textDiv.appendChild(usernameSpan);
-                textDiv.appendChild(reasonSpan);
-                
-                // Copy button section
-                const copyBtn = document.createElement('button');
-                copyBtn.className = "flex-shrink-0 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium py-1.5 px-3 rounded-md transition-colors duration-200";
-                copyBtn.innerText = "복사";
-                
-                // Copy Event
-                copyBtn.addEventListener('click', () => copyToClipboard(item.username, copyBtn));
-                
-                li.appendChild(textDiv);
-                li.appendChild(copyBtn);
-                resultsList.appendChild(li);
-                
-                // Staggered animation for items
-                li.style.opacity = '0';
-                li.style.transform = 'translateY(10px)';
-                setTimeout(() => {
-                    li.style.transition = 'all 0.3s ease-out';
-                    li.style.opacity = '1';
-                    li.style.transform = 'translateY(0)';
-                }, index * 50);
-            });
-        }
+      } catch (err) {
+        console.error(err);
+        errorMessage.textContent = err.message || "아이디 생성 중 문제가 발생했습니다.";
+        errorBox.classList.remove('hidden-custom');
+        errorBox.classList.add('flex');
+      } finally {
+        // 로딩 상태 종료
+        submitBtn.classList.remove('bg-gray-400', 'cursor-not-allowed');
+        submitBtn.classList.add('bg-gray-900', 'hover:bg-black', 'hover:-translate-y-1');
+        btnText.classList.remove('hidden-custom');
+        loadingText.classList.add('hidden-custom');
+        submitBtn.disabled = false;
+      }
+    });
 
-        // Function to copy text to clipboard securely (using execCommand for iframe compatibility)
-        function copyToClipboard(text, buttonElement) {
-            // Create a temporary textarea element
-            const textArea = document.createElement("textarea");
-            textArea.value = text;
-            
-            // Prevent scrolling to bottom
-            textArea.style.top = "0";
-            textArea.style.left = "0";
-            textArea.style.position = "fixed";
-            
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-            
-            try {
-                // Execute copy command
-                const successful = document.execCommand('copy');
-                if (successful) {
-                    // Visual feedback: Change to "복사됨!"
-                    const originalText = buttonElement.innerText;
-                    buttonElement.innerText = "복사됨!";
-                    buttonElement.classList.remove('bg-gray-100', 'hover:bg-gray-200', 'text-gray-700');
-                    buttonElement.classList.add('bg-indigo-100', 'text-indigo-700', 'hover:bg-indigo-200');
-                    
-                    // Revert back after 2 seconds
-                    setTimeout(() => {
-                        buttonElement.innerText = "복사";
-                        buttonElement.classList.remove('bg-indigo-100', 'text-indigo-700', 'hover:bg-indigo-200');
-                        buttonElement.classList.add('bg-gray-100', 'hover:bg-gray-200', 'text-gray-700');
-                    }, 2000);
-                }
-            } catch (err) {
-                console.error('Fallback: Oops, unable to copy', err);
-                alert('클립보드 복사에 실패했습니다.');
-            }
-            
-            document.body.removeChild(textArea);
-        }
-
-        // ---------------------------------------------------------
-        // Mock Data Generator (For Demonstration in Preview only)
-        // ---------------------------------------------------------
-        function generateMockData(keyword, style) {
-            return new Promise((resolve) => {
-                // Simulate network delay (1.5 seconds)
-                setTimeout(() => {
-                    // Translate korean style to a modifier
-                    const engKeyword = "kw"; // simplified for mock
-                    let prefixes = [];
-                    let suffixes = [];
-                    
-                    if (style === '감성') {
-                        prefixes = ['mood.', 'dear.', 'daily.', 'blanc.', 'of.'];
-                        suffixes = ['_mood', '.log', '_days', '.archive'];
-                    } else if (style === '힙한') {
-                        prefixes = ['x.', 'real.', 'zero.', 'y2k.', 'vibe.'];
-                        suffixes = ['_x', '.kr', 'boi', 'gurl', '_vibes'];
-                    } else if (style === '귀여운') {
-                        prefixes = ['mini.', 'tiny.', 'cozy.', 'sweet.', 'berry.'];
-                        suffixes = ['_sz', '.S2', '_bear', 'luv', '.pong'];
-                    } else { // 미니멀
-                        prefixes = ['m.', 'the.', 'a.', 'just.', 'pure.'];
-                        suffixes = ['.m', '_', '.io', '.x', '___'];
-                    }
-
-                    const items = [];
-                    for (let i = 0; i < 10; i++) {
-                        // Generate random variation
-                        const p = prefixes[Math.floor(Math.random() * prefixes.length)];
-                        const s = suffixes[Math.floor(Math.random() * suffixes.length)];
-                        
-                        // Fake a somewhat relevant english looking keyword from the korean input
-                        // For mock purposes, just use the korean keyword if it's english, or a placeholder
-                        const base = /^[a-zA-Z]+$/.test(keyword) ? keyword.toLowerCase() : `user${Math.floor(Math.random()*99)}`;
-                        
-                        let username = "";
-                        const randPattern = Math.random();
-                        if (randPattern < 0.3) username = `${p}${base}`;
-                        else if (randPattern < 0.6) username = `${base}${s}`;
-                        else username = `${p}${base}${s}`;
-
-                        items.push({
-                            username: username,
-                            reason: `입력하신 '${keyword}'의 ${style} 무드를 담아 조합했습니다.`
-                        });
-                    }
-                    resolve({ items });
-                }, 1500);
-            });
-        }
-    </script>
+    // 클립보드 복사 함수
+    window.copyToClipboard = function(text, btnElement) {
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text);
+      } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try { document.execCommand('copy'); } catch (err) {}
+        textArea.remove();
+      }
+      
+      const originalText = btnElement.innerText;
+      btnElement.innerText = "완료!";
+      btnElement.classList.add("bg-green-500", "text-white", "border-transparent");
+      btnElement.classList.remove("bg-white", "text-gray-500", "border-gray-200");
+      
+      setTimeout(() => {
+        btnElement.innerText = originalText;
+        btnElement.classList.remove("bg-green-500", "text-white", "border-transparent");
+        btnElement.classList.add("bg-white", "text-gray-500", "border-gray-200");
+      }, 2000);
+    };
+  </script>
 </body>
 </html>
