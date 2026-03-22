@@ -42,8 +42,8 @@ export default async function handler(req, res) {
 결과는 반드시 ["id_1", "id.2", "id_3"] 형태의 JSON 배열(Array of strings)로만 반환해야 합니다. 다른 텍스트는 덧붙이지 마세요.`;
 
     // Gemini API 호출 (구조화된 JSON 응답 요구)
-    // 에러 수정: 실험용 2.5 preview 모델 대신 공개용 안정화 모델인 gemini-1.5-flash로 변경했습니다.
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+    // 에러 원인 해결: 현재 가장 최신이고 안정적인 gemini-2.5-flash 모델로 변경했습니다.
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
